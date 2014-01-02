@@ -125,7 +125,7 @@ http {
 
 
 myEcho "-------------start to install php and mysql-------------";
-sudo apt-get install php5-fpm php5-dev php5-cli php5-mysqlnd mysql-server;
+sudo apt-get install php5-fpm php5-dev php5-cli php5-gd php5-mysqlnd mysql-server;
 sudo cp /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.bk
 sed -i 's/127.0.0.1:9000/\/var\/run\/php5-fpm.sock/g' /etc/php5/fpm/pool.d/www.conf
 sudo php5-fpm;
