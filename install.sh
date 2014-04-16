@@ -48,7 +48,7 @@ sudo mkdir tmp_download_file;
 cd tmp_download_file/;
 
 myEcho "------------download openresty--------------------";
-wget http://openresty.org/download/ngx_openresty-1.4.3.6.tar.gz;
+wget http://openresty.org/download/ngx_openresty-1.5.11.1.tar.gz;
 sudo tar xzvf ngx_openresty-*.tar.gz;
 cd ngx_openresty-*;
 
