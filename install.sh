@@ -139,7 +139,8 @@ fi
 
 # add nginx to server and add to auto start
 sudo wget http://stutostu.qiniudn.com/openresty.init.d.script -O /etc/init.d/nginx;
-sudo update-rc.d -f nginx defaults
+sudo chmod +x /etc/init.d/nginx;
+sudo update-rc.d -f nginx defaults;
 
 cd ~;
 sudo rm -rf tmp_download_file;
