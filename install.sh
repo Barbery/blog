@@ -86,10 +86,15 @@ http {
 
     sendfile        on;
     keepalive_timeout  65;
-    gzip on;
     client_max_body_size 50m;
 
-
+    gzip on;
+    gzip_min_length 1k;
+    gzip_buffers 16 64k;
+    gzip_http_version 1.1;
+    gzip_comp_level 6;
+    gzip_types text/plain application/x-javascript text/css application/xml;
+    gzip_vary on;
 
     server {
         listen 80;
