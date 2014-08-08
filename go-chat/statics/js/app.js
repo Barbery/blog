@@ -122,7 +122,7 @@ Chat.template = '\
             Chat.cleanMessageBox();
             // before connet socket, check whether has the history message
             Chat.initMessages();
-            Chat.Socket.ws = new WebSocket("ws://192.168.33.10:12345/?from=" + Chat.urlInfo.page + "&chanel=" + Chat.currentChanel);
+            Chat.Socket.ws = new WebSocket("ws://162.243.136.125:12345/?from=" + Chat.urlInfo.page + "&chanel=" + Chat.currentChanel);
 
             Chat.Socket.ws.onopen = function(){
                 console.log("Socket has been opened!");
