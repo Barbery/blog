@@ -18,8 +18,8 @@ Chat.template = '\
               <option value="3" selected>根域名</option>\
               <option value="4">世界</option>\
             </select>\
-            <span class="btn" style="position: fixed;font-size: 20px;margin-left: 12px;">&#9733;</span>\
-            <span class="btn" id="chatClose" style="position: fixed;font-size: 20px;right:0;">&#10006;</span>\
+            <span class="btn" style="position: fixed;font-size: 20px;margin-left: 12px;"><a href="https://github.com/Barbery/blog/tree/master/go-chat">&#9733;</a></span>\
+            <span class="btn" id="chatClose" style="position: fixed;font-size: 20px;right:0;"><a href="javascript:">&#10006;</a></span>\
         </div>\
 \
         <div id="messageBox" style="padding: 10px;overflow: auto;"></div>\
@@ -122,7 +122,7 @@ Chat.template = '\
             Chat.cleanMessageBox();
             // before connet socket, check whether has the history message
             Chat.initMessages();
-            Chat.Socket.ws = new WebSocket("ws://162.243.136.125:12345/?from=" + Chat.urlInfo.page + "&chanel=" + Chat.currentChanel);
+            Chat.Socket.ws = new WebSocket("ws://192.168.33.10:12345/?from=" + Chat.urlInfo.page + "&chanel=" + Chat.currentChanel);
 
             Chat.Socket.ws.onopen = function(){
                 console.log("Socket has been opened!");
@@ -151,6 +151,7 @@ Chat.template = '\
                     Chat.Socket.connect();
                 } else {
                     console.log("socket closed");
+                    Chat.lostConnect();
                 }
             }
         },
