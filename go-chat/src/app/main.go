@@ -10,10 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // var connections = make(map[*websocket.Conn]bool, 0)
@@ -60,9 +58,9 @@ type num struct {
 func socketHandler(ws *websocket.Conn) {
 	var err error
 	onOpen(ws)
+	fmt.Println("onOpen")
 	// when connect, return the nums statistics to client
-	m, _ := json.Marshal(getNums())
-	go broadcastAll(string(m))
+	broadcastNums(ws)
 
 	// fmt.Println(nums)
 
@@ -76,11 +74,11 @@ func socketHandler(ws *websocket.Conn) {
 
 		// users[ws].username = data.Username
 		// fmt.Println(msg, users[ws])
-		go broadcast(msg, "message", users[ws])
+		go broadcast(parseMsg(msg, "message", users[ws]), users[ws])
 	}
 }
 
-func broadcast(msg string, msgType string, user *userinfo) {
+func parseMsg(msg string, msgType string, user *userinfo) string {
 	var data message
 	json.Unmarshal([]byte(msg), &data)
 	if user.username == "" {
@@ -93,8 +91,10 @@ func broadcast(msg string, msgType string, user *userinfo) {
 	data.Content = substr(html.EscapeString(data.Content), 0, 200)
 	data.Type = msgType
 	m, _ := json.Marshal(data)
-	msg = string(m)
+	return string(m)
+}
 
+func broadcast(msg string, user *userinfo) {
 	var err error
 	var connections map[*websocket.Conn]bool
 	switch user.curentChanel {
@@ -116,23 +116,26 @@ func broadcast(msg string, msgType string, user *userinfo) {
 	}
 }
 
-func broadcastAll(msg string) {
-	connections := [4]map[string]map[*websocket.Conn]bool{
-		chanels.page,
-		chanels.domain,
-		chanels.rootDomain,
-		chanels.world,
+func broadcastNums(ws *websocket.Conn) {
+	m, _ := json.Marshal(getNums(users[ws]))
+	go broadcastAll(string(m), users[ws])
+}
+
+func broadcastAll(msg string, user *userinfo) {
+	connections := [4]map[*websocket.Conn]bool{
+		chanels.page[user.page],
+		chanels.domain[user.domain],
+		chanels.rootDomain[user.rootDomain],
+		chanels.world["world"],
 	}
 
 	// fmt.Println(connections)
 	var err error
 	for _, items := range connections {
-		for _, item := range items {
-			for conn := range item {
-				if err = websocket.Message.Send(conn, msg); err != nil {
-					fmt.Println("Can't send")
-					onClose(conn)
-				}
+		for conn := range items {
+			if err = websocket.Message.Send(conn, msg); err != nil {
+				fmt.Println("Can't send")
+				onClose(conn)
 			}
 		}
 	}
@@ -207,6 +210,7 @@ func onOpen(ws *websocket.Conn) {
 }
 
 func onClose(ws *websocket.Conn) {
+	defer delete(users, ws)
 	user := users[ws]
 	switch user.curentChanel {
 	case 1:
@@ -223,7 +227,7 @@ func onClose(ws *websocket.Conn) {
 		nums.world["world"].OnlineNum--
 	}
 
-	delete(users, ws)
+	broadcastNums(ws)
 	fmt.Println("closed: ", ws)
 }
 
@@ -241,7 +245,7 @@ func initChanels() {
 
 func main() {
 	initChanels()
-	go timer()
+	// go timer()
 	http.Handle("/", websocket.Handler(socketHandler))
 
 	if err := http.ListenAndServe(":12345", nil); err != nil {
@@ -249,31 +253,32 @@ func main() {
 	}
 }
 
-func timer() {
-	data := getNums()
-	for {
-		m, _ := json.Marshal(data)
-		go broadcastAll(string(m))
-		// fmt.Println(string(m))
-		runtime.Gosched()
-		time.Sleep(time.Second * 30)
-	}
-}
+// timer to send number statistics
+// func timer() {
+// 	data := getNums()
+// 	for {
+// 		m, _ := json.Marshal(data)
+// 		go broadcastAll(string(m))
+// 		// fmt.Println(string(m))
+// 		runtime.Gosched()
+// 		time.Sleep(time.Second * 30)
+// 	}
+// }
 
-func getNums() interface{} {
+func getNums(user *userinfo) interface{} {
 	type numbers struct {
-		World      map[string]*num
-		Domain     map[string]*num
-		RootDomain map[string]*num
-		Page       map[string]*num
+		World      *num
+		Domain     *num
+		RootDomain *num
+		Page       *num
 		Type       string
 	}
 
 	data := numbers{
-		World:      nums.world,
-		Domain:     nums.domain,
-		RootDomain: nums.rootDomain,
-		Page:       nums.page,
+		World:      nums.world["world"],
+		Domain:     nums.domain[user.domain],
+		RootDomain: nums.rootDomain[user.rootDomain],
+		Page:       nums.page[user.page],
 		Type:       "num",
 	}
 

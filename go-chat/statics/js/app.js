@@ -11,14 +11,14 @@ if (typeof env === 'undefined' || env === 'product') {
 }
 
 Chat.template = '\
-    <div ng-controller id="startBtn" class="span3 btn btn-primary btn-large" style=" position: fixed;bottom: 0;right: 0;padding: 4px;">\
+    <div ng-controller id="chat_startBtn" class="span3 btn btn-primary btn-large" style=" position: fixed;bottom: 0;right: 0;padding: 4px;">\
         聊聊吧\
     </div>\
 \
-    <div class="span5" id="chatContainer" style="position: fixed;bottom: 0;right: 0;height: 100%; display:none;border: 1px solid #ccc;background-color: white;">\
+    <div class="span5" id="chat_container" style="position: fixed;bottom: 0;right: 0;height: 100%; display:none;border: 1px solid #ccc;background-color: white;z-index:9999;text-align: left;">\
         <div style="background-color: #f5f5f5;border: 1px solid #ccc;">\
             <span class="add-on" style="padding-left: 10px;">频道：</span>\
-            <select id="currentChanel" style="margin-bottom: 0px;">\
+            <select id="chat_currentChanel" style="margin-bottom: 0px;">\
               <option value="1">本页面</option>\
               <option value="2">本域名</option>\
               <option value="3" selected>根域名</option>\
@@ -28,16 +28,16 @@ Chat.template = '\
             <span class="btn" id="chatClose" style="position: fixed;font-size: 20px;right:0;"><a href="javascript:">&#10006;</a></span>\
         </div>\
 \
-        <div id="messageBox" style="padding: 10px;overflow: auto;"></div>\
+        <div id="chat_messageBox" style="padding: 10px;overflow: auto;"></div>\
 \
-        <div style="position: fixed;bottom: 0;width: 100%;border-top: 1px solid rgb(204, 204, 204);padding-top: 4px;">\
+        <div style="position: fixed;bottom: 20px;width: 100%;border-top: 1px solid rgb(204, 204, 204);padding-top: 4px;">\
             <div class="input-prepend">\
               <span class="add-on">@</span>\
-              <input id="username" class="span2" type="text" placeholder="昵称">\
+              <input id="chat_username" class="span2" type="text" placeholder="昵称">\
             </div>\
-            <div>\
-                <textarea id="content" rows="3" class="span4" placeholder="发送内容"></textarea>\
-                <button class="btn btn-large btn-primary" id="send" style="margin-top: 14px;" type="button">发送</button>\
+            <div style="width: 380px;height: 70px;">\
+                <textarea id="chat_content" style="width: 280px;min-height: 70px;" rows="3" class="span4" placeholder="发送内容"></textarea>\
+                <button class="btn btn-large btn-primary" id="chat_send" style="margin-top: 14px;" type="button">发送</button>\
             </div>\
 \
         </div>\
@@ -57,26 +57,27 @@ Chat.template = '\
 
         document.getElementsByTagName("body")[0].insertAdjacentHTML("beforeend", Chat.template);
         Chat.objects = {
-            startBtn : document.getElementById("startBtn"),
-            chatContainer : document.getElementById("chatContainer"),
+            startBtn : document.getElementById("chat_startBtn"),
+            chatContainer : document.getElementById("chat_container"),
             closeBtn : document.getElementById("chatClose"),
-            sendBtn : document.getElementById("send"),
-            currentChanel : document.getElementById("currentChanel"),
-            username : document.getElementById("username"),
-            content : document.getElementById("content"),
-            messageBox : document.getElementById("messageBox"),
+            sendBtn : document.getElementById("chat_send"),
+            currentChanel : document.getElementById("chat_currentChanel"),
+            username : document.getElementById("chat_username"),
+            content : document.getElementById("chat_content"),
+            messageBox : document.getElementById("chat_messageBox"),
         }
 
         Chat.swap = function(one, two) {
+            console.log(one, two)
             one.style.display = 'block';
             two.style.display = 'none';
         }
 
-        startBtn.onclick = function () {
+        Chat.objects.startBtn.onclick = function () {
             Chat.swap(Chat.objects.chatContainer, Chat.objects.startBtn);
         }
 
-        chatClose.onclick = function () {
+        Chat.objects.closeBtn.onclick = function () {
             Chat.swap(Chat.objects.startBtn, Chat.objects.chatContainer);
         }
 
@@ -140,7 +141,7 @@ Chat.template = '\
             };
 
             Chat.Socket.ws.onmessage = function(message) {
-                // console.log("received: ", message.data);
+                console.log("received: ", message.data);
                 var data = JSON.parse(message.data);
                 switch (data.Type) {
                     case "message":
@@ -156,7 +157,7 @@ Chat.template = '\
 
 
             Chat.Socket.ws.onclose = function(code, reason) {
-                console.log(code, reason)
+                // console.log(code, reason)
                 if (Chat.Socket.reconnectMaxNum >= 0) {
                     console.log("socket closed, trying to reconnect", Chat.Socket.reconnectMaxNum);
                     Chat.Socket.reconnectMaxNum--;
@@ -238,10 +239,10 @@ Chat.template = '\
 
     Chat.updateNum = function(data) {
         var tmpl = '\
-            <option value="1" ' + (Chat.currentChanel == 1 ? "selected" : "") + '>本页面(在线: ' + (data.Page[Chat.urlInfo.page] ? data.Page[Chat.urlInfo.page].OnlineNum : 0) + ')</option>\
-            <option value="2" ' + (Chat.currentChanel == 2 ? "selected" : "") + '>本域名(在线: ' + (data.Domain[Chat.urlInfo.domain] ? data.Domain[Chat.urlInfo.domain].OnlineNum : 0) + ')</option>\
-            <option value="3" ' + (Chat.currentChanel == 3 ? "selected" : "") + '>根域名(在线: ' + (data.RootDomain[Chat.urlInfo.rootDomain] ? data.RootDomain[Chat.urlInfo.rootDomain].OnlineNum : 0) + ')</option>\
-            <option value="4" ' + (Chat.currentChanel == 4 ? "selected" : "") + '>世界(在线: ' + (data.World["world"] ? data.World["world"].OnlineNum : 0) + ')</option>';
+            <option value="1" ' + (Chat.currentChanel == 1 ? "selected" : "") + '>本页面(在线: ' + (data.Page ? data.Page.OnlineNum : 0) + ')</option>\
+            <option value="2" ' + (Chat.currentChanel == 2 ? "selected" : "") + '>本域名(在线: ' + (data.Domain ? data.Domain.OnlineNum : 0) + ')</option>\
+            <option value="3" ' + (Chat.currentChanel == 3 ? "selected" : "") + '>根域名(在线: ' + (data.RootDomain ? data.RootDomain.OnlineNum : 0) + ')</option>\
+            <option value="4" ' + (Chat.currentChanel == 4 ? "selected" : "") + '>世界(在线: ' + (data.World ? data.World.OnlineNum : 0) + ')</option>';
         Chat.objects.currentChanel.innerHTML = tmpl;
     }
 
