@@ -13,13 +13,12 @@
             iframe.width="390px";
             iframe.height= window.innerHeight + "px";
             iframe.id="chat";
-            iframe.setAttribute("src", "part.html");
             iframe.style.float = "right";
             iframe.style["z-index"] = "99999";
             if (typeof env === 'undefined' || env === 'product') {
-                iframe.setAttribute("src", "http://stutostu.qiniudn.com/part.html");
+                iframe.setAttribute("src", "http://stutostu.qiniudn.com/chat.html");
             } else {
-                iframe.setAttribute("src", "part.html");
+                iframe.setAttribute("src", "chat.html");
             }
 
             document.getElementsByTagName('html')[0].insertBefore(iframe, document.getElementsByTagName("body")[0]);
