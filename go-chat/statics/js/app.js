@@ -36,7 +36,7 @@ Chat.template = '\
               <input id="chat_username" class="span2" type="text" placeholder="昵称">\
             </div>\
             <div style="width: 380px;height: 70px;">\
-                <textarea id="chat_content" style="width: 280px;min-height: 70px;" rows="3" class="span4" placeholder="发送内容"></textarea>\
+                <textarea id="chat_content" style="width: 260px;min-height: 70px;" rows="3" class="span4" placeholder="发送内容"></textarea>\
                 <button class="btn btn-large btn-primary" id="chat_send" style="margin-top: 14px;" type="button">发送</button>\
             </div>\
 \
@@ -239,10 +239,10 @@ Chat.template = '\
 
     Chat.updateNum = function(data) {
         var tmpl = '\
-            <option value="1" ' + (Chat.currentChanel == 1 ? "selected" : "") + '>本页面(在线: ' + (data.Page ? data.Page.OnlineNum : 0) + ')</option>\
-            <option value="2" ' + (Chat.currentChanel == 2 ? "selected" : "") + '>本域名(在线: ' + (data.Domain ? data.Domain.OnlineNum : 0) + ')</option>\
-            <option value="3" ' + (Chat.currentChanel == 3 ? "selected" : "") + '>根域名(在线: ' + (data.RootDomain ? data.RootDomain.OnlineNum : 0) + ')</option>\
-            <option value="4" ' + (Chat.currentChanel == 4 ? "selected" : "") + '>世界(在线: ' + (data.World ? data.World.OnlineNum : 0) + ')</option>';
+            <option value="1" ' + (Chat.currentChanel == 1 ? "selected" : "") + '>本页面(在线: ' + (data.Page[Chat.urlInfo.page] ? data.Page[Chat.urlInfo.page].OnlineNum : 0) + ')</option>\
+            <option value="2" ' + (Chat.currentChanel == 2 ? "selected" : "") + '>本域名(在线: ' + (data.Domain[Chat.urlInfo.domain] ? data.Domain[Chat.urlInfo.domain].OnlineNum : 0) + ')</option>\
+            <option value="3" ' + (Chat.currentChanel == 3 ? "selected" : "") + '>根域名(在线: ' + (data.RootDomain[Chat.urlInfo.rootDomain] ? data.RootDomain[Chat.urlInfo.rootDomain].OnlineNum : 0) + ')</option>\
+            <option value="4" ' + (Chat.currentChanel == 4 ? "selected" : "") + '>世界(在线: ' + (data.World["world"] ? data.World["world"].OnlineNum : 0) + ')</option>';
         Chat.objects.currentChanel.innerHTML = tmpl;
     }
 

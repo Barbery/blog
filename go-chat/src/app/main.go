@@ -10,8 +10,10 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // var connections = make(map[*websocket.Conn]bool, 0)
@@ -58,11 +60,9 @@ type num struct {
 func socketHandler(ws *websocket.Conn) {
 	var err error
 	onOpen(ws)
-	fmt.Println("onOpen")
 	// when connect, return the nums statistics to client
-	broadcastNums(ws)
-
-	// fmt.Println(nums)
+	m, _ := json.Marshal(getNums())
+	websocket.Message.Send(ws, m)
 
 	for {
 		var msg string
@@ -112,31 +112,6 @@ func broadcast(msg string, user *userinfo) {
 		if err = websocket.Message.Send(conn, msg); err != nil {
 			fmt.Println("Can't send")
 			onClose(conn)
-		}
-	}
-}
-
-func broadcastNums(ws *websocket.Conn) {
-	m, _ := json.Marshal(getNums(users[ws]))
-	go broadcastAll(string(m), users[ws])
-}
-
-func broadcastAll(msg string, user *userinfo) {
-	connections := [4]map[*websocket.Conn]bool{
-		chanels.page[user.page],
-		chanels.domain[user.domain],
-		chanels.rootDomain[user.rootDomain],
-		chanels.world["world"],
-	}
-
-	// fmt.Println(connections)
-	var err error
-	for _, items := range connections {
-		for conn := range items {
-			if err = websocket.Message.Send(conn, msg); err != nil {
-				fmt.Println("Can't send")
-				onClose(conn)
-			}
 		}
 	}
 }
@@ -227,7 +202,6 @@ func onClose(ws *websocket.Conn) {
 		nums.world["world"].OnlineNum--
 	}
 
-	broadcastNums(ws)
 	fmt.Println("closed: ", ws)
 }
 
@@ -245,7 +219,7 @@ func initChanels() {
 
 func main() {
 	initChanels()
-	// go timer()
+	go timer()
 	http.Handle("/", websocket.Handler(socketHandler))
 
 	if err := http.ListenAndServe(":12345", nil); err != nil {
@@ -254,35 +228,61 @@ func main() {
 }
 
 // timer to send number statistics
-// func timer() {
-// 	data := getNums()
-// 	for {
-// 		m, _ := json.Marshal(data)
-// 		go broadcastAll(string(m))
-// 		// fmt.Println(string(m))
-// 		runtime.Gosched()
-// 		time.Sleep(time.Second * 30)
-// 	}
-// }
+func timer() {
+	data := getNums()
+	for {
+		m, _ := json.Marshal(data)
+		broadcastAll(string(m))
+		// fmt.Println(string(m))
+		runtime.Gosched()
+		time.Sleep(time.Second * 5)
+	}
+}
 
-func getNums(user *userinfo) interface{} {
+func broadcastAll(msg string) {
+	connections := [4]map[string]map[*websocket.Conn]bool{
+		chanels.page,
+		chanels.domain,
+		chanels.rootDomain,
+		chanels.world,
+	}
+
+	// fmt.Println(connections)
+	var err error
+	for _, items := range connections {
+		if len(items) < 1 {
+			continue
+		}
+
+		go func(items map[string]map[*websocket.Conn]bool) {
+			for _, item := range items {
+				for conn := range item {
+					if err = websocket.Message.Send(conn, msg); err != nil {
+						fmt.Println("Can't send")
+						onClose(conn)
+					}
+				}
+			}
+		}(items)
+	}
+}
+
+func getNums() interface{} {
 	type numbers struct {
-		World      *num
-		Domain     *num
-		RootDomain *num
-		Page       *num
+		World      map[string]*num
+		Domain     map[string]*num
+		RootDomain map[string]*num
+		Page       map[string]*num
 		Type       string
 	}
 
-	data := numbers{
-		World:      nums.world["world"],
-		Domain:     nums.domain[user.domain],
-		RootDomain: nums.rootDomain[user.rootDomain],
-		Page:       nums.page[user.page],
+	return numbers{
+		World:      nums.world,
+		Domain:     nums.domain,
+		RootDomain: nums.rootDomain,
+		Page:       nums.page,
 		Type:       "num",
 	}
-
-	return data
 }
 
 func substr(s string, pos, length int) string {
