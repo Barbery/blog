@@ -23,7 +23,7 @@ var messageList = list.New()
 var nums = new(statistics)
 
 type userinfo struct {
-	// username     string
+	username     string
 	curentChanel int8
 	// createdAt    int16
 	page       string
@@ -76,22 +76,25 @@ func socketHandler(ws *websocket.Conn) {
 
 		// users[ws].username = data.Username
 		// fmt.Println(msg, users[ws])
-		go broadcast(parseMsg(msg, "message"), users[ws])
+		go broadcast(msg, "message", users[ws])
 	}
 }
 
-func parseMsg(msg string, msgType string) string {
+func broadcast(msg string, msgType string, user *userinfo) {
 	var data message
 	json.Unmarshal([]byte(msg), &data)
-	data.Username = substr(html.EscapeString(data.Username), 0, 30)
+	if user.username == "" {
+		data.Username = substr(html.EscapeString(data.Username), 0, 30)
+		user.username = data.Username
+	} else {
+		data.Username = user.username
+	}
+
 	data.Content = substr(html.EscapeString(data.Content), 0, 200)
 	data.Type = msgType
 	m, _ := json.Marshal(data)
 	msg = string(m)
-	return msg
-}
 
-func broadcast(msg string, user *userinfo) {
 	var err error
 	var connections map[*websocket.Conn]bool
 	switch user.curentChanel {
@@ -121,7 +124,7 @@ func broadcastAll(msg string) {
 		chanels.world,
 	}
 
-	fmt.Println(connections)
+	// fmt.Println(connections)
 	var err error
 	for _, items := range connections {
 		for _, item := range items {

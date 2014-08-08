@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
     <title>首页</title>
     <style type="text/css">
@@ -9,7 +10,12 @@
             var head = document.getElementsByTagName('head')[0];
             js = document.createElement("script");
             js.type = "text/javascript";
-            js.src = 'http://stutostu.qiniudn.com/app.js';
+            if (typeof env === 'undefined' || env === 'product') {
+                js.src = 'http://stutostu.qiniudn.com/app.js';
+            } else {
+                js.src = 'js/app.js';
+            }
+
             head.appendChild(js);
         };
     </script>

@@ -4,12 +4,18 @@ if (typeof Chat === 'undefined')
         currentChanel : 3,
     };
 
+if (typeof env === 'undefined' || env === 'product') {
+    Chat.address = "162.243.136.125:12345"
+} else {
+    Chat.address = "192.168.33.10:12345"
+}
+
 Chat.template = '\
     <div ng-controller id="startBtn" class="span3 btn btn-primary btn-large" style=" position: fixed;bottom: 0;right: 0;padding: 4px;">\
         聊聊吧\
     </div>\
 \
-    <div class="span5" id="chatContainer" style="position: fixed;bottom: 0;right: 0;height: 100%; display:none;border: 1px solid #ccc;">\
+    <div class="span5" id="chatContainer" style="position: fixed;bottom: 0;right: 0;height: 100%; display:none;border: 1px solid #ccc;background-color: white;">\
         <div style="background-color: #f5f5f5;border: 1px solid #ccc;">\
             <span class="add-on" style="padding-left: 10px;">频道：</span>\
             <select id="currentChanel" style="margin-bottom: 0px;">\
@@ -27,7 +33,7 @@ Chat.template = '\
         <div style="position: fixed;bottom: 0;width: 100%;border-top: 1px solid rgb(204, 204, 204);padding-top: 4px;">\
             <div class="input-prepend">\
               <span class="add-on">@</span>\
-              <input id="username" style="height:30px" class="span2" type="text" placeholder="昵称">\
+              <input id="username" class="span2" type="text" placeholder="昵称">\
             </div>\
             <div>\
                 <textarea id="content" rows="3" class="span4" placeholder="发送内容"></textarea>\
@@ -74,7 +80,6 @@ Chat.template = '\
             Chat.swap(Chat.objects.startBtn, Chat.objects.chatContainer);
         }
 
-
         Chat.objects.sendBtn.onclick = function(){
             switch (Chat.Socket.ws.readyState) {
                 case 0:
@@ -82,6 +87,8 @@ Chat.template = '\
                     // no break;
                 case 1:
                     if (Chat.objects.username.value != "" && Chat.objects.content.value != "") {
+                        Chat.objects.username.disabled = "disabled";
+                        window.localStorage.setItem("Chat.username", Chat.objects.username.value);
                         Chat.send(Chat.objects.username.value, Chat.objects.content.value)
                     } else {
                         alert("昵称和发送内容不能为空哦")
@@ -94,13 +101,17 @@ Chat.template = '\
         };
 
         Chat.objects.currentChanel.onchange = function(){
-            var tmp = this.value
-            if (tmp != Chat.currentChanel) {
-                Chat.Socket.ws.close();
-                Chat.currentChanel = tmp;
-                Chat.Socket.connect();
+            var newChanel = this.value
+            if (newChanel != Chat.currentChanel) {
+                Chat.Socket.reconnectMaxNum++;
+                Chat.currentChanel = newChanel;
+                Chat.Socket.ws.close(1000);
             }
         };
+
+        var username = window.localStorage.getItem("Chat.username");
+        if (username != null)
+            Chat.objects.username.value = username;
 
         // defualt join to rootDomain chanel
         if (typeof Chat.currentChanel === 'undefined')
@@ -122,7 +133,7 @@ Chat.template = '\
             Chat.cleanMessageBox();
             // before connet socket, check whether has the history message
             Chat.initMessages();
-            Chat.Socket.ws = new WebSocket("ws://162.243.136.125:12345/?from=" + Chat.urlInfo.page + "&chanel=" + Chat.currentChanel);
+            Chat.Socket.ws = new WebSocket("ws://" + Chat.address + "/?from=" + Chat.urlInfo.page + "&chanel=" + Chat.currentChanel);
 
             Chat.Socket.ws.onopen = function(){
                 console.log("Socket has been opened!");
@@ -144,7 +155,8 @@ Chat.template = '\
             };
 
 
-            Chat.Socket.ws.onclose = function() {
+            Chat.Socket.ws.onclose = function(code, reason) {
+                console.log(code, reason)
                 if (Chat.Socket.reconnectMaxNum >= 0) {
                     console.log("socket closed, trying to reconnect", Chat.Socket.reconnectMaxNum);
                     Chat.Socket.reconnectMaxNum--;
@@ -162,7 +174,7 @@ Chat.template = '\
                 if (typeof callback !== 'undefined') {
                   callback();
                 }
-            }, 1000);
+            }, 200);
         },
 
         waitForConnection : function (callback, interval) {
