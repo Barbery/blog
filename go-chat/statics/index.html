@@ -6,21 +6,32 @@
 
     </style>
     <script type="text/javascript">
+        var env = "develop"
         window.onload = function() {
-            var head = document.getElementsByTagName('head')[0];
-            js = document.createElement("script");
-            js.type = "text/javascript";
+            var iframe = document.createElement('iframe');
+            iframe.frameBorder=0;
+            iframe.width="390px";
+            iframe.height= window.innerHeight + "px";
+            iframe.id="chat";
+            iframe.setAttribute("src", "part.html");
+            iframe.style.float = "right";
+            iframe.style["z-index"] = "99999";
             if (typeof env === 'undefined' || env === 'product') {
-                js.src = 'http://stutostu.qiniudn.com/app.js';
+                iframe.setAttribute("src", "http://stutostu.qiniudn.com/part.html");
             } else {
-                js.src = 'js/app.js';
+                iframe.setAttribute("src", "part.html");
             }
 
-            head.appendChild(js);
+            document.getElementsByTagName('html')[0].insertBefore(iframe, document.getElementsByTagName("body")[0]);
         };
     </script>
 </head>
 <body>
+    <div>111111</div>
+    <div>111111</div>
+    <div>111111</div>
+    <div>111111</div>
+    <div>111111</div>
  <!--    <div ng-controller id="startBtn" class="span3 btn btn-primary btn-large floatToRightButtom" style="padding: 4px;">
         在线(123) | 消息(123)
     </div>

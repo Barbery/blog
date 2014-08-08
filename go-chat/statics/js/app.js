@@ -24,7 +24,7 @@ Chat.template = '\
               <option value="3" selected>根域名</option>\
               <option value="4">世界</option>\
             </select>\
-            <span class="btn" style="position: fixed;font-size: 20px;margin-left: 12px;"><a href="https://github.com/Barbery/blog/tree/master/go-chat">&#9733;</a></span>\
+            <span class="btn" style="position: fixed;font-size: 20px;margin-left: 12px;"><a href="https://github.com/Barbery/blog/tree/master/go-chat" target="_blank">&#9733;</a></span>\
             <span class="btn" id="chatClose" style="position: fixed;font-size: 20px;right:0;"><a href="javascript:">&#10006;</a></span>\
         </div>\
 \
