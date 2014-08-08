@@ -15,10 +15,14 @@
             iframe.id="chat";
             iframe.style.float = "right";
             iframe.style["z-index"] = "99999";
+            iframe.style.right = "0px";
+            iframe.style.bottom = "0px";
+            iframe.style.position= "fixed";
+
             if (typeof env === 'undefined' || env === 'product') {
                 iframe.setAttribute("src", "http://stutostu.qiniudn.com/chat.html");
             } else {
-                iframe.setAttribute("src", "chat.html");
+                iframe.setAttribute("src", "chat.html?env=develop&currentChanel=2");
             }
 
             document.getElementsByTagName('html')[0].insertBefore(iframe, document.getElementsByTagName("body")[0]);

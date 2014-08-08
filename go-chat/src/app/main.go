@@ -62,7 +62,7 @@ func socketHandler(ws *websocket.Conn) {
 	onOpen(ws)
 	// when connect, return the nums statistics to client
 	m, _ := json.Marshal(getNums())
-	websocket.Message.Send(ws, m)
+	websocket.Message.Send(ws, string(m))
 
 	for {
 		var msg string

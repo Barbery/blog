@@ -2,12 +2,19 @@
 <html>
 <head>
     <title>go-Chat</title>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
     <link rel="stylesheet" type="text/css" href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css">
     <script type="text/javascript">
+    var param = window.location.href.split("#")[0].split("?")[1];
+    var params = {};
+    if (param !== "undefined") {
+        params = parse_str(param);
+    }
 
-    if (typeof parent.chat.currentChanel !== 'undefined') {
+
+    if (typeof params["currentChanel"] !== 'undefined') {
         var Chat = {
-            currentChanel : parent.chat.currentChanel,
+            currentChanel : params["currentChanel"],
         };
     } else {
         var Chat = {
@@ -16,13 +23,13 @@
     }
 
 
-    if (typeof parent.env === 'undefined' || parent.env === 'product') {
+    if (typeof params["env"] === 'undefined' || params["env"] === 'product') {
         Chat.address = "162.243.136.125:12345"
     } else {
         Chat.address = "192.168.33.10:12345"
     }
 
-    console.log(parent.env)
+    console.log(Chat.address)
     window.onload = function(){
         setTimeout(function(){
             Chat.objects = {
@@ -241,6 +248,34 @@
             Chat.objects.sendBtn.innerHTML = "已断开";
         }
     }
+
+    function parse_str(str) {
+        if (str == null || str.indexOf('=') == -1)
+        {
+            return null;
+        }
+
+        var arr = str.split('&');
+        var result = new Object();
+
+
+        if (arr.length < 2 )
+        {
+            param = str.split('=');
+            result[param[0]] = param[1];
+        }
+        else
+        {
+            var param;
+            for (var i = arr.length - 1; i >= 0; i--)
+            {
+                param = arr[i].split('=');
+                result[param[0]] = param[1];
+            }
+        }
+
+        return result;
+    }
     </script>
 </head>
 <body>
@@ -253,10 +288,6 @@
         <div style="background-color: #f5f5f5;border: 1px solid #ccc;">
             <span class="add-on" style="padding-left: 10px;">频道：</span>
             <select id="chat_currentChanel" style="margin-bottom: 0px;">
-              <option value="1">本页面</option>
-              <option value="2">本域名</option>
-              <option value="3" selected>根域名</option>
-              <option value="4">世界</option>
             </select>
             <span class="btn" style="position: fixed;font-size: 20px;margin-left: 12px;"><a href="https://github.com/Barbery/blog/tree/master/go-chat" target="_blank">&#9733;</a></span>
             <span class="btn" id="chatClose" style="position: fixed;font-size: 20px;right:0;"><a href="javascript:">&#10006;</a></span>
