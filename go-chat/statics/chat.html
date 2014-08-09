@@ -7,7 +7,7 @@
     <script type="text/javascript">
     var param = window.location.href.split("#")[0].split("?")[1];
     var params = {};
-    if (param !== "undefined") {
+    if (typeof param !== "undefined") {
         params = parse_str(param);
     }
 
@@ -29,7 +29,6 @@
         Chat.address = "192.168.33.10:12345"
     }
 
-    console.log(Chat.address)
     window.onload = function(){
         setTimeout(function(){
             Chat.objects = {
@@ -44,7 +43,7 @@
             }
 
             Chat.swap = function(one, two) {
-                console.log(one, two)
+                // console.log(one, two)
                 one.style.display = 'block';
                 two.style.display = 'none';
             }
@@ -117,7 +116,7 @@
                 };
 
                 Chat.Socket.ws.onmessage = function(message) {
-                    console.log("received: ", message.data);
+                    // console.log("received: ", message.data);
                     var data = JSON.parse(message.data);
                     switch (data.Type) {
                         case "message":
@@ -224,7 +223,14 @@
 
 
         Chat.initUrl = function() {
-            var domain = window.location.href.match(/http[s]?:\/\/([\w\.\-]+)/)[1];
+            if (window != window.top) {
+                var params = parse_str(window.location.href.split("#")[0].split("?")[1]);
+                url = params["from"];
+            } else {
+                url = window.location.href;
+            }
+
+            var domain = url.match(/http[s]?:\/\/([\w\.\-]+)/)[1];
             var domainInfos = domain.split(".");
             if (/\.(com\.cn|com\.hk|gov\.cn|net\.cn|org\.cn)$/.test(domain)) {
                 var rootDomain = domainInfos.slice(domainInfos.length - 3, domainInfos.length).join(".")
@@ -280,7 +286,7 @@
 </head>
 <body>
 
-    <div ng-controller id="chat_startBtn" class="span3 btn btn-primary btn-large" style=" position: fixed;bottom: 0;right: 0;padding: 4px;display:none;">
+    <div ng-controller id="chat_startBtn" class="span3 btn btn-primary btn-large" style="position: fixed;bottom: 0;right: 0;padding: 4px;display:none;">
         聊聊吧
     </div>
 
