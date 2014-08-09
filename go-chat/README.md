@@ -1,5 +1,8 @@
 # go-chat
-========================
+=======================
+
+中文说明: [http://www.stutostu.com/?p=1358](http://www.stutostu.com/?p=1358)
+
 this components was written by golang + websocket(html5). it provides a platform for users to chat when users browse the web.
 
 
@@ -28,5 +31,4 @@ very easy, just insert the below code into your page
 - world: the biggest channel, everyone who use this components can chat in this page.
 
 notice: go-chat has four channel. so far users only can join in one channel, that means you only receive/send messages from one channel you joined.
-
 
