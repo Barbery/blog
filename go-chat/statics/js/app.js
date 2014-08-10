@@ -25,7 +25,7 @@ Chat.template = '\
             background-color: #eee;\
         }\
     </style>\
-    <div ng-controller id="chat_startBtn" class="span3 btn btn-primary btn-large body" style="position: fixed;bottom: 0;right: 0;padding: 4px;display: block;width: 220px;*display: inline;margin-bottom: 0;*margin-left: 0;font-size: 17.5px;line-height: 20px;color: #fff;text-align: center;text-shadow: 0 -1px 0 rgba(0,0,0,0.25);vertical-align: middle;cursor: pointer;background-color: #006dcc;*background-color: #04c;background-image: linear-gradient(to bottom,#08c,#04c);background-repeat: repeat-x;border: 1px solid #ccc;*border: 0;border-color: rgba(0,0,0,0.1) rgba(0,0,0,0.1) rgba(0,0,0,0.25);border-bottom-color: #b3b3b3;-webkit-border-radius: 6px;-moz-border-radius: 6px;border-radius: 6px;filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);*zoom: 1;-webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);-moz-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);">\
+    <div ng-controller id="chat_startBtn" class="span3 btn btn-primary btn-large body" style="z-index:9999;position: fixed;bottom: 0;right: 0;padding: 4px;display: block;width: 220px;*display: inline;margin-bottom: 0;*margin-left: 0;font-size: 17.5px;line-height: 20px;color: #fff;text-align: center;text-shadow: 0 -1px 0 rgba(0,0,0,0.25);vertical-align: middle;cursor: pointer;background-color: #006dcc;*background-color: #04c;background-image: linear-gradient(to bottom,#08c,#04c);background-repeat: repeat-x;border: 1px solid #ccc;*border: 0;border-color: rgba(0,0,0,0.1) rgba(0,0,0,0.1) rgba(0,0,0,0.25);border-bottom-color: #b3b3b3;-webkit-border-radius: 6px;-moz-border-radius: 6px;border-radius: 6px;filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);*zoom: 1;-webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);-moz-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);">\
         聊聊吧\
     </div>\
 \
@@ -70,7 +70,7 @@ Chat.template = '\
             };
 
             Chat.Socket.ws.onmessage = function(message) {
-                console.log("received: ", message.data);
+                // console.log("received: ", message.data);
                 var data = JSON.parse(message.data);
                 switch (data.Type) {
                     case "message":
@@ -85,8 +85,8 @@ Chat.template = '\
             };
 
 
-            Chat.Socket.ws.onclose = function(code, reason) {
-                // console.log(code, reason)
+            Chat.Socket.ws.onclose = function(evt) {
+                // console.log(evt)
                 if (Chat.Socket.reconnectMaxNum >= 0) {
                     console.log("socket closed, trying to reconnect", Chat.Socket.reconnectMaxNum);
                     Chat.Socket.reconnectMaxNum--;
@@ -95,7 +95,7 @@ Chat.template = '\
                     console.log("socket closed");
                     Chat.lostConnect();
                 }
-            }
+            };
         },
 
         send : function (message, callback) {
@@ -258,7 +258,9 @@ Chat.template = '\
                     if (Chat.objects.username.value != "" && Chat.objects.content.value != "") {
                         Chat.objects.username.disabled = "disabled";
                         window.localStorage.setItem("Chat.username", Chat.objects.username.value);
-                        Chat.send(Chat.objects.username.value, Chat.objects.content.value)
+                        Chat.send(Chat.objects.username.value, Chat.objects.content.value);
+                        // clean content
+                        Chat.objects.content.value = "";
                     } else {
                         alert("昵称和发送内容不能为空哦")
                     }
