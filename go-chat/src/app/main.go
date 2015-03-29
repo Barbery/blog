@@ -2,7 +2,6 @@ package main
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"container/list"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -19,8 +18,9 @@ import (
 // var connections = make(map[*websocket.Conn]bool, 0)
 var users = make(map[*websocket.Conn]*userinfo)
 var chanels = new(chanel)
-var messageList = list.New()
 var nums = new(statistics)
+var messages = new(history)
+var maxMsgLen = 20
 
 type userinfo struct {
 	username     string
@@ -52,6 +52,13 @@ type statistics struct {
 	page       map[string]*num
 }
 
+type history struct {
+	world      map[string][]message
+	rootDomain map[string][]message
+	domain     map[string][]message
+	page       map[string][]message
+}
+
 type num struct {
 	OnlineNum  int8
 	MessageNum int8
@@ -78,7 +85,7 @@ func socketHandler(ws *websocket.Conn) {
 	}
 }
 
-func parseMsg(msg string, msgType string, user *userinfo) string {
+func parseMsg(msg string, msgType string, user *userinfo) message {
 	var data message
 	json.Unmarshal([]byte(msg), &data)
 	if user.username == "" {
@@ -90,24 +97,53 @@ func parseMsg(msg string, msgType string, user *userinfo) string {
 
 	data.Content = substr(html.EscapeString(data.Content), 0, 200)
 	data.Type = msgType
-	m, _ := json.Marshal(data)
-	return string(m)
+	return data
 }
 
-func broadcast(msg string, user *userinfo) {
+func broadcast(data message, user *userinfo) {
 	var err error
 	var connections map[*websocket.Conn]bool
 	switch user.curentChanel {
 	case 1:
 		connections = chanels.page[user.page]
+		messages.page[user.page] = append(messages.page[user.page], data)
+		l := len(messages.page[user.page])
+		min := 0
+		if l-maxMsgLen > 0 {
+			min = l - maxMsgLen
+		}
+		messages.page[user.page] = messages.page[user.page][min:l]
 	case 2:
 		connections = chanels.domain[user.domain]
+		messages.domain[user.domain] = append(messages.domain[user.domain], data)
+		l := len(messages.domain[user.domain])
+		min := 0
+		if l-maxMsgLen > 0 {
+			min = l - maxMsgLen
+		}
+		messages.domain[user.domain] = messages.domain[user.domain][min:l]
 	case 3:
 		connections = chanels.rootDomain[user.rootDomain]
+		messages.rootDomain[user.rootDomain] = append(messages.rootDomain[user.rootDomain], data)
+		l := len(messages.rootDomain[user.rootDomain])
+		min := 0
+		if l-maxMsgLen > 0 {
+			min = l - maxMsgLen
+		}
+		messages.rootDomain[user.rootDomain] = messages.rootDomain[user.rootDomain][min:l]
 	case 4:
 		connections = chanels.world["world"]
+		messages.world["world"] = append(messages.world["world"], data)
+		l := len(messages.world["world"])
+		min := 0
+		if l-maxMsgLen > 0 {
+			min = l - maxMsgLen
+		}
+		messages.world["world"] = messages.world["world"][min:l]
 	}
 
+	m, _ := json.Marshal(data)
+	msg := string(m)
 	for conn := range connections {
 		if err = websocket.Message.Send(conn, msg); err != nil {
 			fmt.Println("Can't send")
@@ -145,6 +181,7 @@ func onOpen(ws *websocket.Conn) {
 			chanels.page[page] = val
 			val[ws] = true
 			nums.page[page] = &num{OnlineNum: 0, MessageNum: 0}
+			messages.page[page] = []message{}
 		} else {
 			chanels.page[page][ws] = true
 		}
@@ -155,6 +192,7 @@ func onOpen(ws *websocket.Conn) {
 			chanels.domain[domain] = val
 			val[ws] = true
 			nums.domain[domain] = &num{OnlineNum: 0, MessageNum: 0}
+			messages.domain[domain] = []message{}
 		} else {
 			chanels.domain[domain][ws] = true
 		}
@@ -165,6 +203,7 @@ func onOpen(ws *websocket.Conn) {
 			chanels.rootDomain[rootDomain] = val
 			val[ws] = true
 			nums.rootDomain[rootDomain] = &num{OnlineNum: 0, MessageNum: 0}
+			messages.rootDomain[rootDomain] = []message{}
 		} else {
 			chanels.rootDomain[rootDomain][ws] = true
 		}
@@ -175,6 +214,7 @@ func onOpen(ws *websocket.Conn) {
 			chanels.world["world"] = val
 			val[ws] = true
 			nums.world["world"] = &num{OnlineNum: 0, MessageNum: 0}
+			messages.world["world"] = []message{}
 		} else {
 			chanels.world["world"][ws] = true
 		}
@@ -182,6 +222,7 @@ func onOpen(ws *websocket.Conn) {
 	}
 
 	users[ws] = &userinfo{curentChanel: chanel, page: page, domain: domain, rootDomain: rootDomain}
+	go sendHistory(users[ws], ws)
 }
 
 func onClose(ws *websocket.Conn) {
@@ -215,6 +256,11 @@ func initChanels() {
 	nums.domain = make(map[string]*num)
 	nums.rootDomain = make(map[string]*num)
 	nums.page = make(map[string]*num)
+
+	messages.world = make(map[string][]message)
+	messages.domain = make(map[string][]message)
+	messages.rootDomain = make(map[string][]message)
+	messages.page = make(map[string][]message)
 }
 
 func main() {
@@ -235,7 +281,7 @@ func timer() {
 		broadcastAll(string(m))
 		// fmt.Println(string(m))
 		runtime.Gosched()
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 60)
 	}
 }
 
@@ -282,6 +328,23 @@ func getNums() interface{} {
 		RootDomain: nums.rootDomain,
 		Page:       nums.page,
 		Type:       "num",
+	}
+}
+
+func sendHistory(user *userinfo, conn *websocket.Conn) {
+	switch user.curentChanel {
+	case 1:
+		m, _ := json.Marshal(messages.page[user.page])
+		websocket.Message.Send(conn, string(m))
+	case 2:
+		m, _ := json.Marshal(messages.domain[user.domain])
+		websocket.Message.Send(conn, string(m))
+	case 3:
+		m, _ := json.Marshal(messages.rootDomain[user.rootDomain])
+		websocket.Message.Send(conn, string(m))
+	case 4:
+		m, _ := json.Marshal(messages.world["world"])
+		websocket.Message.Send(conn, string(m))
 	}
 }
 
