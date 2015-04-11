@@ -39,7 +39,7 @@ myEcho()
 }
 
 myEcho "-------------install some depends compose-------------";
-sudo apt-get install python-software-properties libreadline-dev libpcre3-dev libssl-dev perl make sudo ^ncurses*;
+sudo apt-get install python-software-properties libreadline-dev libncurses5-dev libpcre3-dev libssl-dev perl make sudo ^ncurses*;
 sudo add-apt-repository ppa:ondrej/php5
 sudo apt-get update
 
