@@ -39,8 +39,8 @@ myEcho()
 }
 
 myEcho "-------------install some depends compose-------------";
-sudo apt-get install python-software-properties libreadline-dev libncurses5-dev libpcre3-dev libssl-dev perl make sudo ^ncurses*;
-sudo add-apt-repository ppa:ondrej/php5
+sudo apt-get install -y python-software-properties libreadline-dev libncurses5-dev libpcre3-dev libssl-dev perl make sudo ^ncurses*;
+sudo add-apt-repository ppa:ondrej/php -y
 sudo apt-get update
 
 cd ~;
@@ -48,7 +48,7 @@ sudo mkdir tmp_download_file;
 cd tmp_download_file/;
 
 myEcho "------------download openresty--------------------";
-wget http://openresty.org/download/ngx_openresty-1.5.11.1.tar.gz;
+wget https://openresty.org/download/openresty-1.9.7.4.tar.gz;
 sudo tar xzvf ngx_openresty-*.tar.gz;
 cd ngx_openresty-*;
 
@@ -110,7 +110,7 @@ http {
 
         location ~ \.php {
             fastcgi_index index.php;
-            fastcgi_pass unix:/var/run/php5-fpm.sock;
+            fastcgi_pass unix:/var/run/php7.0-fpm.sock;
             include      fastcgi_params;
 
             set $path_info "";
@@ -130,10 +130,10 @@ http {
 
 
 myEcho "-------------start to install php and mysql-------------";
-sudo apt-get install php5-fpm php5-dev php5-cli php5-gd php5-mysqlnd mysql-server;
-sudo cp /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.bk
-sed -i 's/127.0.0.1:9000/\/var\/run\/php5-fpm.sock/g' /etc/php5/fpm/pool.d/www.conf
-sudo php5-fpm;
+sudo apt-get install -y php7.0-fpm php7.0-dev php7.0-cli php7.0-gd php7.0-mysqlnd mysql-server;
+sudo cp /etc/php/7.0/fpm/pool.d/www.conf /etc/php/7.0/fpm/pool.d/www.conf.bk
+sed -i 's/127.0.0.1:9000/\/var\/run\/php7.0-fpm.sock/g' /etc/php5/fpm/pool.d/www.conf
+sudo service php7.0-fpm restart;
 
 if test $( pgrep -f nginx | wc -l ) -eq 0
 then
