@@ -132,7 +132,7 @@ http {
 myEcho "-------------start to install php and mysql-------------";
 sudo apt-get install -y php7.0-fpm php7.0-dev php7.0-cli php7.0-gd php7.0-mysqlnd mysql-server;
 sudo cp /etc/php/7.0/fpm/pool.d/www.conf /etc/php/7.0/fpm/pool.d/www.conf.bk
-sed -i 's/127.0.0.1:9000/\/var\/run\/php7.0-fpm.sock/g' /etc/php5/fpm/pool.d/www.conf
+sed -i 's/127.0.0.1:9000/\/var\/run\/php7.0-fpm.sock/g' /etc/php/7.0/fpm/pool.d/www.conf
 sudo service php7.0-fpm restart;
 
 if test $( pgrep -f nginx | wc -l ) -eq 0
